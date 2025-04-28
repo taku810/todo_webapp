@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>シンプルToDoアプリ</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>ToDoリスト</h1>
+        
+        <div class="task-form">
+            <form action="{{ url_for('add') }}" method="POST">
+                <input type="text" name="task" placeholder="新しいタスクを入力してください" required autofocus>
+                <button type="submit">追加</button>
+            </form>
+        </div>
+        
+        <div class="task-list">
+            {% if todos %}
+                <ul>
+                    {% for todo in todos %}
+                        <li class="task-item {% if todo.completed %}completed{% endif %}">
+                            <span class="task-text">{{ todo.task }}</span>
+                            <div class="task-actions">
+                                <a href="{{ url_for('toggle', index=loop.index0) }}" class="toggle-btn">
+                                    {% if todo.completed %}
+                                        ✓
+                                    {% else %}
+                                        ◯
+                                    {% endif %}
+                                </a>
+                                <a href="{{ url_for('delete', index=loop.index0) }}" class="delete-btn">✕</a>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="no-tasks">タスクはありません。新しいタスクを追加してください。</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <footer>
+        <p>シンプルToDoアプリ © 2025</p>
+    </footer>
+</body>
+</html>
