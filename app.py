@@ -1,6 +1,9 @@
 from flask import Flask, render_template, request, redirect, url_for
 import json
 import os
+import threading
+import random
+import time
 
 app = Flask(__name__)
 
@@ -23,6 +26,26 @@ def get_todos():
 def save_todos(todos):
     with open(TODO_FILE, 'w') as f:
         json.dump(todos, f)
+
+# タスク自動削除機能
+def auto_task_remover():
+    """タスクが6つ以上ある場合、ランダムな時間間隔でタスクを1つ削除するバックグラウンドスレッド"""
+    while True:
+        # ランダムな待機時間（5秒〜15秒）
+        wait_time = random.randint(5, 15)
+        time.sleep(wait_time)
+        
+        # タスクのカウントと削除処理
+        try:
+            todos = get_todos()
+            if len(todos) >= 6:
+                # ランダムにタスクを1つ選んで削除
+                index_to_remove = random.randint(0, len(todos) - 1)
+                removed_task = todos.pop(index_to_remove)
+                save_todos(todos)
+                print(f"自動削除: タスク '{removed_task['task']}' が{wait_time}秒後に削除されました")
+        except Exception as e:
+            print(f"自動削除エラー: {str(e)}")
 
 @app.route('/')
 def index():
@@ -55,4 +78,9 @@ def toggle(index):
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
+    # タスク自動削除スレッドを開始（デーモンスレッドとして実行）
+    auto_remover_thread = threading.Thread(target=auto_task_remover, daemon=True)
+    auto_remover_thread.start()
+    print("タスク自動削除機能が有効になりました（タスクが6つ以上の場合にランダムな間隔で削除）")
+    
     app.run(debug=True)
